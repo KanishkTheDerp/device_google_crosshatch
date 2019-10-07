@@ -37,6 +37,7 @@ endif
 # SELinux
 # BOARD_SEPOLICY_DIRS += device/google/crosshatch/sepolicy-lineage/dynamic
 # BOARD_SEPOLICY_DIRS += device/google/crosshatch/sepolicy-lineage/vendor
+BOARD_SEPOLICY_DIRS += $(DEVICE_PATH)/temp
 
 # Verified Boot
 BOARD_AVB_MAKE_VBMETA_IMAGE_ARGS += --flags 3
