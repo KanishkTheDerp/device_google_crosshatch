@@ -170,6 +170,9 @@ on init && property:vendor.skip.init=0
     chown system system /sys/devices/platform/soc/soc:google,charger/bd_clear
     chown system system /sys/class/power_supply/wireless/device/mitigate_threshold
 
+    # Health HAL
+    chown system system /sys/devices/virtual/thermal/tz-by-name/soc/mode
+
 on late-init
     write /sys/devices/virtual/thermal/tz-by-name/quiet-therm-adc/mode enabled
     chown system system /sys/devices/virtual/thermal/tz-by-name/quiet-therm-monitor/trip_point_0_temp
