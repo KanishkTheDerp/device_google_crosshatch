@@ -1,0 +1,10 @@
+[
+  {
+    "repository": "android_kernel_google_bluecross",
+    "target_path": "kernel/google/bluecross"
+  },
+  {
+    "repository": "android_vendor_google_bluecross",
+    "target_path": "vendor/google"
+  },
+]
