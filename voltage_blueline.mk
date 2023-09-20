@@ -28,4 +28,9 @@ PRODUCT_BUILD_PROP_OVERRIDES += \
 
 BUILD_FINGERPRINT := google/blueline/blueline:12/SP1A.210812.016.C2/8618562:user/release-keys
 
+# Inherit some common VoltageOS stuff.
+TARGET_BOOT_ANIMATION_RES := 1920
+VOLTAGE_BUILD_TYPE := OFFICIAL
+WITH_GMS := true
+
 $(call inherit-product, vendor/google/blueline/blueline-vendor.mk)
