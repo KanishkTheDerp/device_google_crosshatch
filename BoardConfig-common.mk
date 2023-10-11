@@ -37,6 +37,7 @@ TARGET_2ND_CPU_VARIANT_RUNTIME := kryo385
 
 TARGET_BOARD_COMMON_PATH := device/google/crosshatch/sdm845
 
+BUILD_BROKEN_CLANG_PROPERTY := true
 BUILD_BROKEN_DUP_RULES := true
 BUILD_BROKEN_USES_BUILD_COPY_HEADERS := true
 
@@ -49,6 +50,7 @@ BOARD_KERNEL_CMDLINE += lpm_levels.sleep_disabled=1
 BOARD_KERNEL_CMDLINE += usbcore.autosuspend=7
 BOARD_KERNEL_CMDLINE += loop.max_part=7
 BOARD_KERNEL_CMDLINE += androidboot.boot_devices=soc/1d84000.ufshc
+BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
 
 BOARD_KERNEL_BASE        := 0x00000000
 BOARD_KERNEL_PAGESIZE    := 4096
@@ -196,7 +198,7 @@ ifeq ($(PRODUCT_USE_QC_SPECIFIC_SYMLINKS), true)
 BOARD_ROOT_EXTRA_SYMLINKS += /vendor/firmware_mnt:/firmware
 endif
 
-include device/google/crosshatch/sepolicy/crosshatch-sepolicy.mk
+# include device/google/crosshatch/sepolicy/crosshatch-sepolicy.mk
 
 TARGET_FS_CONFIG_GEN := device/google/crosshatch/config.fs
 
