@@ -19,7 +19,7 @@ import /vendor/etc/init/hw/init.${ro.boot.hardware.platform}.usb.rc
 import /vendor/etc/init/hw/init.${ro.boot.hardware.platform}.diag.rc
 import /vendor/etc/init/hw/init.${ro.boot.hardware.platform}.logging.rc
 import /vendor/etc/init/hw/init.${ro.boot.hardware.platform}.mpssrfs.rc
-
+import /vendor/etc/init/hw/init.${ro.boot.hardware.platform}.logcat.rc
 
 on property:init.svc.vendor.charger=running
     # keep one LITTLE and one big
