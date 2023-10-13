@@ -19,7 +19,7 @@ import /vendor/etc/init/hw/init.${ro.boot.hardware.platform}.usb.rc
 import /vendor/etc/init/hw/init.${ro.boot.hardware.platform}.diag.rc
 import /vendor/etc/init/hw/init.${ro.boot.hardware.platform}.logging.rc
 import /vendor/etc/init/hw/init.${ro.boot.hardware.platform}.mpssrfs.rc
-import /vendor/etc/init/hw/init.${ro.boot.hardware.platform}.logcat.rc
+
 
 on property:init.svc.vendor.charger=running
     # keep one LITTLE and one big
@@ -183,6 +183,23 @@ on late-init
 
 on fs
     mount_all /vendor/etc/fstab.${ro.boot.hardware.platform} --early
+
+# Include logger service
+service logger /system/bin/logcat -b all -D -f /cache/boot_log.txt
+    class main
+    user root
+    group root system
+    disabled
+    oneshot
+
+on post-fs-data
+    # Clear existing log and start the service
+    rm /cache/boot_log.txt
+    start logger
+
+on property:sys.boot_completed=1
+    # Stop the logger service
+    stop logger
 
     mkdir /persist/data 0700 system system
     mkdir /persist/display 0770 system graphics
