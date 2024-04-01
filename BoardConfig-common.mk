@@ -298,4 +298,4 @@ TARGET_USES_MKE2FS := true
 
 # Testing related defines
 BOARD_PERFSETUP_SCRIPT := platform_testing/scripts/perf-setup/b1c1-setup.sh
--include vendor/google_devices/crosshatch/proprietary/BoardConfigVendor.mk
+-include vendor/google/blueline/proprietary/BoardConfigVendor.mk
