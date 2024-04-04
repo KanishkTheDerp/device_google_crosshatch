@@ -129,9 +129,13 @@ PRODUCT_PACKAGES += \
     android.hardware.oemlock@1.0.vendor:64 \
     android.hardware.radio.config@1.0.vendor:64 \
     android.hardware.radio.config@1.1.vendor:64 \
-    android.hardware.radio.deprecated@1.0.vendor:64 \
+    android.hardware.radio.config@1.2.vendor:64 \
+    android.hardware.radio.config@1.3.vendor:64 \
     android.hardware.radio@1.2.vendor:64 \
     android.hardware.radio@1.3.vendor:64 \
+    android.hardware.radio@1.4.vendor:64 \
+    android.hardware.radio@1.5.vendor:64 \
+    android.hardware.radio@1.6.vendor:64 \
     android.hardware.sensors@1.0.vendor:32 \
     android.hardware.sensors@2.0.vendor \
     android.hardware.thermal@1.0.vendor:64 \
