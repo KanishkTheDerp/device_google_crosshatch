@@ -1,0 +1,34 @@
+[
+  {
+    "repository": "https://github.com/LineageOS/android_device_google_gs-common",
+    "target_path": "device/google/gs-common"
+  },
+  {
+    "repository": "https://android.googlesource.com/device/sample",
+    "target_path": "device/sample"
+  },
+  {
+    "repository": "https://github.com/LineageOS/android_hardware_qcom_sdm845_display",
+    "target_path": "hardware/qcom/sdm845/display"
+  },
+  {
+    "repository": "https://github.com/LineageOS/android_hardware_qcom_sdm845_gps",
+    "target_path": "hardware/qcom/sdm845/gps"
+  },
+  {
+    "repository": "https://github.com/LineageOS/android_hardware_qcom_sdm845_media",
+    "target_path": "hardware/qcom/sdm845/media"
+  },
+  {
+    "repository": "https://github.com/LineageOS/android_packages_apps_ElmyraService",
+    "target_path": "packages/apps/ElmyraService"
+  },
+  {
+    "repository": "https://github.com/LineageOS/android_kernel_google_msm-4.9",
+    "target_path": "kernel/google/msm-4.9"
+  },
+  {
+    "repository": "https://github.com/TheMuppets/proprietary_vendor_google_blueline",
+    "target_path": "vendor/google/blueline"
+  }
+]
