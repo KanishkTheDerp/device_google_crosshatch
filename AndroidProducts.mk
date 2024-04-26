@@ -27,5 +27,9 @@ COMMON_LUNCH_CHOICES := \
     aosp_crosshatch-userdebug \
     aosp_blueline-userdebug \
     aosp_crosshatch_vf-userdebug \
-    voltage_blueline-userdebug \
-    voltage_crosshatch-userdebug
+    voltage_blueline-ap1a-userdebug \
+    voltage_blueline-ap1a-user \
+    voltage_blueline-ap1a-eng \
+    voltage_crosshatch-ap1a-userdebug \
+    voltage_crosshatch-ap1a-user \
+    voltage_crosshatch-ap1a-eng
