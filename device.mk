@@ -368,12 +368,11 @@ PRODUCT_PACKAGES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.hardware.lights=qcom
 
-# Memtrack/Vibrator HALs
+# Memtrack HAL
 PRODUCT_PACKAGES += \
     memtrack.sdm845 \
     android.hardware.memtrack@1.0-impl \
-    android.hardware.vibrator@1.2-impl.crosshatch \
-    small_hals.crosshatch-service
+    android.hardware.memtrack@1.0-service
 
 # Bluetooth SoC
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -498,6 +497,10 @@ PRODUCT_PACKAGES += \
     android.hardware.boot@1.2-impl-pixel-legacy \
     android.hardware.boot@1.2-impl-pixel-legacy.recovery \
     android.hardware.boot@1.2-service \
+
+# Vibrator HAL
+PRODUCT_PACKAGES += \
+    android.hardware.vibrator@1.2-service.crosshatch
 
 #GNSS HAL
 PRODUCT_PACKAGES += \

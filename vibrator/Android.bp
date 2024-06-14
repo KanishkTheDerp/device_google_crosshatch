@@ -17,11 +17,12 @@ package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
-cc_library_shared {
-    name: "android.hardware.vibrator@1.2-impl.crosshatch",
+cc_binary {
+    name: "android.hardware.vibrator@1.2-service.crosshatch",
     relative_install_path: "hw",
+    init_rc: ["android.hardware.vibrator@1.2-service.crosshatch.rc"],
     srcs: [
-        "impl.cpp",
+        "service.cpp",
         "Vibrator.cpp",
     ],
     cflags: [

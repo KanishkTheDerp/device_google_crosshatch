@@ -23,6 +23,9 @@
 
 #include "Vibrator.h"
 
+using android::OK;
+using android::sp;
+using android::status_t;
 using android::hardware::configureRpcThreadpool;
 using android::hardware::joinRpcThreadpool;
 using android::hardware::vibrator::V1_2::IVibrator;
@@ -101,8 +104,7 @@ static bool loadCalibrationData() {
     return true;
 }
 
-// passing out ownership, can't make sp yet
-IVibrator *makeVibratorService() {
+status_t registerVibratorService() {
     // ostreams below are required
     std::ofstream activate{ACTIVATE_PATH};
     if (!activate) {
@@ -143,10 +145,19 @@ IVibrator *makeVibratorService() {
         ALOGW("Failed to load calibration data");
     }
 
-    return new Vibrator(std::move(activate), std::move(duration), std::move(effect),
-                        std::move(queue), std::move(scale));
+    sp<IVibrator> vibrator = new Vibrator(std::move(activate), std::move(duration),
+                                          std::move(effect), std::move(queue), std::move(scale));
+
+    return vibrator->registerAsService();
 }
 
-extern "C" IVibrator *HIDL_FETCH_IVibrator(const char * /*instnace*/) {
-    return makeVibratorService();
+int main() {
+    configureRpcThreadpool(1, true);
+    status_t status = registerVibratorService();
+
+    if (status != OK) {
+        return status;
+    }
+
+    joinRpcThreadpool();
 }
