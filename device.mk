@@ -858,7 +858,6 @@ endif
 # Pixel Logger
 include hardware/google/pixel/PixelLogger/PixelLogger.mk
 
-include hardware/google/pixel/pixelstats/device.mk
 include hardware/google/pixel/mm/device_legacy.mk
 include device/google/gs-common/thermal/thermal_hal/device.mk
 
