@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "VibratorService"
-
-#include <log/log.h>
-
-#include <hardware/hardware.h>
-#include <hardware/vibrator.h>
-#include <cutils/properties.h>
+#define LOG_TAG "Vibrator"
 
 #include "Vibrator.h"
 
+#include <hardware/hardware.h>
+#include <hardware/vibrator.h>
+#include <log/log.h>
+
 #include <cinttypes>
 #include <cmath>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
-
+namespace aidl {
 namespace android {
 namespace hardware {
 namespace vibrator {
-namespace V1_2 {
-namespace implementation {
-
-using Status = ::android::hardware::vibrator::V1_0::Status;
-using EffectStrength = ::android::hardware::vibrator::V1_0::EffectStrength;
 
 static constexpr uint32_t WAVEFORM_TICK_EFFECT_INDEX = 2;
 static constexpr uint32_t WAVEFORM_TICK_EFFECT_MS = 9;
@@ -95,155 +88,160 @@ static constexpr float AMP_ATTENUATE_STEP_SIZE = 0.125f;
 
 static constexpr int8_t MAX_TRIGGER_LATENCY_MS = 6;
 
-static uint8_t amplitudeToScale(uint8_t amplitude, uint8_t maximum) {
-    return std::round((-20 * std::log10(amplitude / static_cast<float>(maximum))) /
-                      (AMP_ATTENUATE_STEP_SIZE));
+static uint8_t amplitudeToScale(float amplitude, float maximum) {
+    return std::round((-20 * std::log10(amplitude / maximum)) / (AMP_ATTENUATE_STEP_SIZE));
 }
 
-Vibrator::Vibrator(std::ofstream&& activate, std::ofstream&& duration, std::ofstream&& effect,
-        std::ofstream&& queue, std::ofstream&& scale) :
-    mActivate(std::move(activate)),
-    mDuration(std::move(duration)),
-    mEffectIndex(std::move(effect)),
-    mEffectQueue(std::move(queue)),
-    mScale(std::move(scale))
-{}
+Vibrator::Vibrator(std::ofstream &&activate, std::ofstream &&duration, std::ofstream &&effect,
+                   std::ofstream &&queue, std::ofstream &&scale)
+    : mActivate(std::move(activate)),
+      mDuration(std::move(duration)),
+      mEffectIndex(std::move(effect)),
+      mEffectQueue(std::move(queue)),
+      mScale(std::move(scale)) {}
 
-Return<Status> Vibrator::on(uint32_t timeoutMs, uint32_t effectIndex) {
+ndk::ScopedAStatus Vibrator::getCapabilities(int32_t *_aidl_return) {
+    int32_t ret = 0;
+    if (mScale) {
+        ret |= IVibrator::CAP_AMPLITUDE_CONTROL;
+    }
+    *_aidl_return = ret;
+    return ndk::ScopedAStatus::ok();
+}
+
+ndk::ScopedAStatus Vibrator::enable(uint32_t timeoutMs, uint32_t effectIndex) {
     mEffectIndex << effectIndex << std::endl;
     mDuration << (timeoutMs + MAX_TRIGGER_LATENCY_MS) << std::endl;
     mActivate << 1 << std::endl;
 
-    return Status::OK;
+    return ndk::ScopedAStatus::ok();
 }
 
-
-// Methods from ::android::hardware::vibrator::V1_1::IVibrator follow.
-Return<Status> Vibrator::on(uint32_t timeoutMs) {
-    return on(timeoutMs, 0);
+ndk::ScopedAStatus Vibrator::on(int32_t timeoutMs,
+                                const std::shared_ptr<IVibratorCallback> &callback) {
+    if (callback) {
+        return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+    }
+    return enable(timeoutMs, 0);
 }
 
-Return<Status> Vibrator::off()  {
+ndk::ScopedAStatus Vibrator::off() {
     mActivate << 0 << std::endl;
     if (!mActivate) {
         ALOGE("Failed to turn vibrator off (%d): %s", errno, strerror(errno));
-        return Status::UNKNOWN_ERROR;
+        return ndk::ScopedAStatus::fromExceptionCode(EX_ILLEGAL_STATE);
     }
-    return Status::OK;
+    return ndk::ScopedAStatus::ok();
 }
 
-Return<bool> Vibrator::supportsAmplitudeControl()  {
-    return (mScale ? true : false);
-}
-
-Return<Status> Vibrator::setAmplitude(uint8_t amplitude) {
-
-    if (!amplitude) {
-        return Status::BAD_VALUE;
+ndk::ScopedAStatus Vibrator::setAmplitude(float amplitude) {
+    if (amplitude <= 0.0f || amplitude > 1.0f) {
+        return ndk::ScopedAStatus::fromExceptionCode(EX_ILLEGAL_ARGUMENT);
     }
 
-    int32_t scale = amplitudeToScale(amplitude, UINT8_MAX);
+    int32_t scale = amplitudeToScale(amplitude, 1.0);
 
     mScale << scale << std::endl;
     if (!mScale) {
         ALOGE("Failed to set amplitude (%d): %s", errno, strerror(errno));
-        return Status::UNKNOWN_ERROR;
+        return ndk::ScopedAStatus::fromExceptionCode(EX_ILLEGAL_STATE);
     }
 
-    return Status::OK;
+    return ndk::ScopedAStatus::ok();
 }
 
-Return<void> Vibrator::perform(V1_0::Effect effect, EffectStrength strength,
-        perform_cb _hidl_cb) {
-    return performWrapper(effect, strength, _hidl_cb);
+ndk::ScopedAStatus Vibrator::setExternalControl(bool /*enabled*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
 }
 
-Return<void> Vibrator::perform_1_1(V1_1::Effect_1_1 effect, EffectStrength strength,
-        perform_cb _hidl_cb) {
-    return performWrapper(effect, strength, _hidl_cb);
+ndk::ScopedAStatus Vibrator::getSupportedEffects(std::vector<Effect> *_aidl_return) {
+    *_aidl_return = {
+        Effect::TICK,       Effect::CLICK,       Effect::HEAVY_CLICK, Effect::DOUBLE_CLICK,
+        Effect::RINGTONE_1, Effect::RINGTONE_2,  Effect::RINGTONE_3,  Effect::RINGTONE_4,
+        Effect::RINGTONE_5, Effect::RINGTONE_6,  Effect::RINGTONE_7,  Effect::RINGTONE_8,
+        Effect::RINGTONE_9, Effect::RINGTONE_10, Effect::RINGTONE_11, Effect::RINGTONE_12};
+    return ndk::ScopedAStatus::ok();
 }
 
-Return<void> Vibrator::perform_1_2(Effect effect, EffectStrength strength,
-        perform_cb _hidl_cb) {
-    return performWrapper(effect, strength, _hidl_cb);
-}
+ndk::ScopedAStatus Vibrator::perform(Effect effect, EffectStrength strength,
+                                     const std::shared_ptr<IVibratorCallback> &callback,
+                                     int32_t *_aidl_return) {
+    ndk::ScopedAStatus status;
 
-template <typename T>
-Return<void> Vibrator::performWrapper(T effect, EffectStrength strength, perform_cb _hidl_cb) {
-    auto validRange = hidl_enum_range<T>();
-    if (effect < *validRange.begin() || effect > *std::prev(validRange.end())) {
-        _hidl_cb(Status::UNSUPPORTED_OPERATION, 0);
-        return Void();
+    if (callback) {
+        status = ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+    } else {
+        status = performEffect(effect, strength, _aidl_return);
     }
-    return performEffect(static_cast<Effect>(effect), strength, _hidl_cb);
+
+    return status;
 }
 
-Return<void> Vibrator::performEffect(Effect effect, EffectStrength strength,
-        perform_cb _hidl_cb) {
-    Status status = Status::OK;
-    uint32_t timeMs;
+ndk::ScopedAStatus Vibrator::performEffect(Effect effect, EffectStrength strength,
+                                           int32_t *outTimeMs) {
+    ndk::ScopedAStatus status;
+    uint32_t timeMs = 0;
     uint32_t effectIndex;
 
     switch (effect) {
-    case Effect::TICK:
-        effectIndex = WAVEFORM_TICK_EFFECT_INDEX;
-        timeMs = WAVEFORM_TICK_EFFECT_MS;
-        break;
-    case Effect::CLICK:
-        effectIndex = WAVEFORM_CLICK_EFFECT_INDEX;
-        timeMs = WAVEFORM_CLICK_EFFECT_MS;
-        break;
-    case Effect::HEAVY_CLICK:
-        effectIndex = WAVEFORM_HEAVY_CLICK_EFFECT_INDEX;
-        if (strength == EffectStrength::STRONG) {
-            timeMs = WAVEFORM_STRONG_HEAVY_CLICK_EFFECT_MS;
-        } else {
-            timeMs = WAVEFORM_HEAVY_CLICK_EFFECT_MS;
-        }
-        break;
-    case Effect::DOUBLE_CLICK:
-        effectIndex = WAVEFORM_DOUBLE_CLICK_EFFECT_INDEX;
-        timeMs = WAVEFORM_DOUBLE_CLICK_EFFECT_MS;
-        break;
-    case Effect::RINGTONE_1:
-        mEffectQueue << WAVEFORM_RINGTONE1_EFFECT_QUEUE << std::endl;
-        break;
-    case Effect::RINGTONE_2:
-        mEffectQueue << WAVEFORM_RINGTONE2_EFFECT_QUEUE << std::endl;
-        break;
-    case Effect::RINGTONE_3:
-        mEffectQueue << WAVEFORM_RINGTONE3_EFFECT_QUEUE << std::endl;
-        break;
-    case Effect::RINGTONE_4:
-        mEffectQueue << WAVEFORM_RINGTONE4_EFFECT_QUEUE << std::endl;
-        break;
-    case Effect::RINGTONE_5:
-        mEffectQueue << WAVEFORM_RINGTONE5_EFFECT_QUEUE << std::endl;
-        break;
-    case Effect::RINGTONE_6:
-        mEffectQueue << WAVEFORM_RINGTONE6_EFFECT_QUEUE << std::endl;
-        break;
-    case Effect::RINGTONE_7:
-        mEffectQueue << WAVEFORM_RINGTONE7_EFFECT_QUEUE << std::endl;
-        break;
-    case Effect::RINGTONE_8:
-        mEffectQueue << WAVEFORM_RINGTONE8_EFFECT_QUEUE << std::endl;
-        break;
-    case Effect::RINGTONE_9:
-        mEffectQueue << WAVEFORM_RINGTONE9_EFFECT_QUEUE << std::endl;
-        break;
-    case Effect::RINGTONE_10:
-        mEffectQueue << WAVEFORM_RINGTONE10_EFFECT_QUEUE << std::endl;
-        break;
-    case Effect::RINGTONE_11:
-        mEffectQueue << WAVEFORM_RINGTONE11_EFFECT_QUEUE << std::endl;
-        break;
-    case Effect::RINGTONE_12:
-        mEffectQueue << WAVEFORM_RINGTONE12_EFFECT_QUEUE << std::endl;
-        break;
-    default:
-        _hidl_cb(Status::UNSUPPORTED_OPERATION, 0);
-        return Void();
+        case Effect::TICK:
+            effectIndex = WAVEFORM_TICK_EFFECT_INDEX;
+            timeMs = WAVEFORM_TICK_EFFECT_MS;
+            break;
+        case Effect::CLICK:
+            effectIndex = WAVEFORM_CLICK_EFFECT_INDEX;
+            timeMs = WAVEFORM_CLICK_EFFECT_MS;
+            break;
+        case Effect::HEAVY_CLICK:
+            effectIndex = WAVEFORM_HEAVY_CLICK_EFFECT_INDEX;
+            if (strength == EffectStrength::STRONG) {
+                timeMs = WAVEFORM_STRONG_HEAVY_CLICK_EFFECT_MS;
+            } else {
+                timeMs = WAVEFORM_HEAVY_CLICK_EFFECT_MS;
+            }
+            break;
+        case Effect::DOUBLE_CLICK:
+            effectIndex = WAVEFORM_DOUBLE_CLICK_EFFECT_INDEX;
+            timeMs = WAVEFORM_DOUBLE_CLICK_EFFECT_MS;
+            break;
+        case Effect::RINGTONE_1:
+            mEffectQueue << WAVEFORM_RINGTONE1_EFFECT_QUEUE << std::endl;
+            break;
+        case Effect::RINGTONE_2:
+            mEffectQueue << WAVEFORM_RINGTONE2_EFFECT_QUEUE << std::endl;
+            break;
+        case Effect::RINGTONE_3:
+            mEffectQueue << WAVEFORM_RINGTONE3_EFFECT_QUEUE << std::endl;
+            break;
+        case Effect::RINGTONE_4:
+            mEffectQueue << WAVEFORM_RINGTONE4_EFFECT_QUEUE << std::endl;
+            break;
+        case Effect::RINGTONE_5:
+            mEffectQueue << WAVEFORM_RINGTONE5_EFFECT_QUEUE << std::endl;
+            break;
+        case Effect::RINGTONE_6:
+            mEffectQueue << WAVEFORM_RINGTONE6_EFFECT_QUEUE << std::endl;
+            break;
+        case Effect::RINGTONE_7:
+            mEffectQueue << WAVEFORM_RINGTONE7_EFFECT_QUEUE << std::endl;
+            break;
+        case Effect::RINGTONE_8:
+            mEffectQueue << WAVEFORM_RINGTONE8_EFFECT_QUEUE << std::endl;
+            break;
+        case Effect::RINGTONE_9:
+            mEffectQueue << WAVEFORM_RINGTONE9_EFFECT_QUEUE << std::endl;
+            break;
+        case Effect::RINGTONE_10:
+            mEffectQueue << WAVEFORM_RINGTONE10_EFFECT_QUEUE << std::endl;
+            break;
+        case Effect::RINGTONE_11:
+            mEffectQueue << WAVEFORM_RINGTONE11_EFFECT_QUEUE << std::endl;
+            break;
+        case Effect::RINGTONE_12:
+            mEffectQueue << WAVEFORM_RINGTONE12_EFFECT_QUEUE << std::endl;
+            break;
+        default:
+            return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
     }
 
     // EffectStrength needs to be handled differently for ringtone effects
@@ -251,46 +249,118 @@ Return<void> Vibrator::performEffect(Effect effect, EffectStrength strength,
         effectIndex = WAVEFORM_RINGTONE_EFFECT_INDEX;
         timeMs = WAVEFORM_RINGTONE_EFFECT_MS;
         switch (strength) {
-        case EffectStrength::LIGHT:
-            setAmplitude(UINT8_MAX / 3);
-            break;
-        case EffectStrength::MEDIUM:
-            setAmplitude(UINT8_MAX / 2);
-            break;
-        case EffectStrength::STRONG:
-            setAmplitude(UINT8_MAX);
-            break;
-        default:
-            _hidl_cb(Status::UNSUPPORTED_OPERATION, 0);
-            return Void();
+            case EffectStrength::LIGHT:
+                setAmplitude(0.3);
+                break;
+            case EffectStrength::MEDIUM:
+                setAmplitude(0.5);
+                break;
+            case EffectStrength::STRONG:
+                setAmplitude(1.0);
+                break;
+            default:
+                return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
         }
     } else {
         switch (strength) {
-        case EffectStrength::LIGHT:
-            effectIndex -= 1;
-            break;
-        case EffectStrength::MEDIUM:
-            break;
-        case EffectStrength::STRONG:
-            effectIndex += 1;
-            break;
-        default:
-            _hidl_cb(Status::UNSUPPORTED_OPERATION, 0);
-            return Void();
+            case EffectStrength::LIGHT:
+                effectIndex -= 1;
+                break;
+            case EffectStrength::MEDIUM:
+                break;
+            case EffectStrength::STRONG:
+                effectIndex += 1;
+                break;
+            default:
+                return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
         }
-        timeMs += MAX_TRIGGER_LATENCY_MS; // Add expected cold-start latency
-        setAmplitude(UINT8_MAX); // Always set full-scale for non-ringtone constants
+        timeMs += MAX_TRIGGER_LATENCY_MS;  // Add expected cold-start latency
+        setAmplitude(1.0);                 // Always set full-scale for non-ringtone constants
     }
 
-    on(timeMs, effectIndex);
-    _hidl_cb(status, timeMs);
+    status = enable(timeMs, effectIndex);
+    if (!status.isOk()) {
+        return status;
+    }
 
-    return Void();
+    *outTimeMs = timeMs;
+
+    return ndk::ScopedAStatus::ok();
 }
 
+ndk::ScopedAStatus Vibrator::getSupportedAlwaysOnEffects(std::vector<Effect> * /*_aidl_return*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
 
-} // namespace implementation
-}  // namespace V1_2
+ndk::ScopedAStatus Vibrator::alwaysOnEnable(int32_t /*id*/, Effect /*effect*/,
+                                            EffectStrength /*strength*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
+ndk::ScopedAStatus Vibrator::alwaysOnDisable(int32_t /*id*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
+ndk::ScopedAStatus Vibrator::getCompositionDelayMax(int32_t * /*maxDelayMs*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
+ndk::ScopedAStatus Vibrator::getCompositionSizeMax(int32_t * /*maxSize*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
+ndk::ScopedAStatus Vibrator::getSupportedPrimitives(std::vector<CompositePrimitive> * /*supported*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
+ndk::ScopedAStatus Vibrator::getPrimitiveDuration(CompositePrimitive /*primitive*/,
+                                                  int32_t * /*durationMs*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
+ndk::ScopedAStatus Vibrator::compose(const std::vector<CompositeEffect> & /*composite*/,
+                                     const std::shared_ptr<IVibratorCallback> & /*callback*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
+ndk::ScopedAStatus Vibrator::getResonantFrequency(float * /*resonantFreqHz*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
+ndk::ScopedAStatus Vibrator::getQFactor(float * /*qFactor*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
+ndk::ScopedAStatus Vibrator::getFrequencyResolution(float * /*freqResolutionHz*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
+ndk::ScopedAStatus Vibrator::getFrequencyMinimum(float * /*freqMinimumHz*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
+ndk::ScopedAStatus Vibrator::getBandwidthAmplitudeMap(std::vector<float> * /*_aidl_return*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
+ndk::ScopedAStatus Vibrator::getPwlePrimitiveDurationMax(int32_t * /*durationMs*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
+ndk::ScopedAStatus Vibrator::getPwleCompositionSizeMax(int32_t * /*maxSize*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
+ndk::ScopedAStatus Vibrator::getSupportedBraking(std::vector<Braking> * /*supported*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
+ndk::ScopedAStatus Vibrator::composePwle(const std::vector<PrimitivePwle> & /*composite*/,
+                                         const std::shared_ptr<IVibratorCallback> & /*callback*/) {
+    return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+}
+
 }  // namespace vibrator
 }  // namespace hardware
 }  // namespace android
+}  // namespace aidl

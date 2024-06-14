@@ -500,7 +500,7 @@ PRODUCT_PACKAGES += \
 
 # Vibrator HAL
 PRODUCT_PACKAGES += \
-    android.hardware.vibrator@1.2-service.crosshatch
+    android.hardware.vibrator-service.crosshatch
 
 #GNSS HAL
 PRODUCT_PACKAGES += \

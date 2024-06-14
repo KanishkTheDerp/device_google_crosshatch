@@ -13,54 +13,65 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ANDROID_HARDWARE_VIBRATOR_V1_2_VIBRATOR_H
-#define ANDROID_HARDWARE_VIBRATOR_V1_2_VIBRATOR_H
 
-#include <android/hardware/vibrator/1.2/IVibrator.h>
-#include <hidl/Status.h>
+#pragma once
+
+#include <aidl/android/hardware/vibrator/BnVibrator.h>
 
 #include <fstream>
 
+namespace aidl {
 namespace android {
 namespace hardware {
 namespace vibrator {
-namespace V1_2 {
-namespace implementation {
 
-class Vibrator : public IVibrator {
-public:
-    Vibrator(std::ofstream&& activate, std::ofstream&& duration, std::ofstream&& effect,
-            std::ofstream&& queue, std::ofstream&& scale);
+class Vibrator : public BnVibrator {
+  public:
+    Vibrator(std::ofstream &&activate, std::ofstream &&duration, std::ofstream &&effect,
+             std::ofstream &&queue, std::ofstream &&scale);
 
-    // Methods from ::android::hardware::vibrator::V1_0::IVibrator follow.
-    using Status = ::android::hardware::vibrator::V1_0::Status;
-    Return<Status> on(uint32_t timeoutMs)  override;
-    Return<Status> off()  override;
-    Return<bool> supportsAmplitudeControl() override;
-    Return<Status> setAmplitude(uint8_t amplitude) override;
+    ndk::ScopedAStatus getCapabilities(int32_t *_aidl_return) override;
+    ndk::ScopedAStatus off() override;
+    ndk::ScopedAStatus on(int32_t timeoutMs,
+                          const std::shared_ptr<IVibratorCallback> &callback) override;
+    ndk::ScopedAStatus perform(Effect effect, EffectStrength strength,
+                               const std::shared_ptr<IVibratorCallback> &callback,
+                               int32_t *_aidl_return) override;
+    ndk::ScopedAStatus getSupportedEffects(std::vector<Effect> *_aidl_return) override;
+    ndk::ScopedAStatus setAmplitude(float amplitude) override;
+    ndk::ScopedAStatus setExternalControl(bool enabled) override;
+    ndk::ScopedAStatus getCompositionDelayMax(int32_t *maxDelayMs);
+    ndk::ScopedAStatus getCompositionSizeMax(int32_t *maxSize);
+    ndk::ScopedAStatus getSupportedPrimitives(std::vector<CompositePrimitive> *supported) override;
+    ndk::ScopedAStatus getPrimitiveDuration(CompositePrimitive primitive,
+                                            int32_t *durationMs) override;
+    ndk::ScopedAStatus compose(const std::vector<CompositeEffect> &composite,
+                               const std::shared_ptr<IVibratorCallback> &callback) override;
+    ndk::ScopedAStatus getSupportedAlwaysOnEffects(std::vector<Effect> *_aidl_return) override;
+    ndk::ScopedAStatus alwaysOnEnable(int32_t id, Effect effect, EffectStrength strength) override;
+    ndk::ScopedAStatus alwaysOnDisable(int32_t id) override;
+    ndk::ScopedAStatus getResonantFrequency(float *resonantFreqHz) override;
+    ndk::ScopedAStatus getQFactor(float *qFactor) override;
+    ndk::ScopedAStatus getFrequencyResolution(float *freqResolutionHz) override;
+    ndk::ScopedAStatus getFrequencyMinimum(float *freqMinimumHz) override;
+    ndk::ScopedAStatus getBandwidthAmplitudeMap(std::vector<float> *_aidl_return) override;
+    ndk::ScopedAStatus getPwlePrimitiveDurationMax(int32_t *durationMs) override;
+    ndk::ScopedAStatus getPwleCompositionSizeMax(int32_t *maxSize) override;
+    ndk::ScopedAStatus getSupportedBraking(std::vector<Braking> *supported) override;
+    ndk::ScopedAStatus composePwle(const std::vector<PrimitivePwle> &composite,
+                                   const std::shared_ptr<IVibratorCallback> &callback) override;
 
-    using EffectStrength = ::android::hardware::vibrator::V1_0::EffectStrength;
-    Return<void> perform(V1_0::Effect effect, EffectStrength strength, perform_cb _hidl_cb)
-            override;
-    Return<void> perform_1_1(V1_1::Effect_1_1 effect, EffectStrength strength, perform_cb _hidl_cb)
-            override;
-    Return<void> perform_1_2(Effect effect, EffectStrength strength, perform_cb _hidl_cb) override;
-
-private:
-    Return<Status> on(uint32_t timeoutMs, uint32_t effectIndex);
-    template <typename T>
-    Return<void> performWrapper(T effect, EffectStrength strength, perform_cb _hidl_cb);
-    Return<void> performEffect(Effect effect, EffectStrength strength, perform_cb _hidl_cb);
+  private:
+    ndk::ScopedAStatus enable(uint32_t timeoutMs, uint32_t effectIndex);
+    ndk::ScopedAStatus performEffect(Effect effect, EffectStrength strength, int32_t *outTimeMs);
     std::ofstream mActivate;
     std::ofstream mDuration;
     std::ofstream mEffectIndex;
     std::ofstream mEffectQueue;
     std::ofstream mScale;
 };
-}  // namespace implementation
-}  // namespace V1_1
+
 }  // namespace vibrator
 }  // namespace hardware
 }  // namespace android
-
-#endif  // ANDROID_HARDWARE_VIBRATOR_V1_2_VIBRATOR_H
+}  // namespace aidl
