@@ -5,7 +5,7 @@
 #
 
 # Inherit some common Lineage stuff.
-$(call inherit-product, vendor/voltage/config/common_full_phone.mk)
+$(call inherit-product, vendor/neko/config/common_full_phone.mk)
 
 # Inherit device configuration
 $(call inherit-product, device/google/crosshatch/aosp_blueline.mk)
@@ -15,7 +15,7 @@ include device/google/crosshatch/blueline/device-lineage.mk
 # Device identifier. This must come after all inclusions
 PRODUCT_BRAND := google
 PRODUCT_MODEL := Pixel 3
-PRODUCT_NAME := voltage_blueline
+PRODUCT_NAME := neko_blueline
 
 # Boot animation
 TARGET_SCREEN_HEIGHT := 2160
@@ -23,7 +23,8 @@ TARGET_SCREEN_WIDTH := 1080
 TARGET_BOOT_ANIMATION_RES=2160
 
 # Build type
-VOLTAGE_BUILD_TYPE := OFFICIAL
+# VOLTAGE_BUILD_TYPE := OFFICIAL
+WITH_GMS := true
 
 PRODUCT_BUILD_PROP_OVERRIDES += \
     TARGET_PRODUCT=blueline \

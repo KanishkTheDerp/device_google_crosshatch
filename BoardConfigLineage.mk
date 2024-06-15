@@ -28,9 +28,8 @@ ifneq ($(PRODUCT_USE_DYNAMIC_PARTITIONS), true)
 endif
 BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
 
-
-# Reserve some space for GApps
-include device/google/crosshatch/configs/reserved_space.mk
+# BOARD_PRODUCTIMAGE_MINIMAL_PARTITION_RESERVED_SIZE := true
+# -include vendor/neko/config/BoardConfigReservedSize.mk
 
 # SELinux
 BOARD_SEPOLICY_DIRS += device/google/crosshatch/sepolicy-lineage/dynamic

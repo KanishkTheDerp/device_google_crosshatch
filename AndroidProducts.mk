@@ -20,16 +20,16 @@ PRODUCT_MAKEFILES := \
     $(LOCAL_DIR)/aosp_crosshatch_hwasan.mk \
     $(LOCAL_DIR)/aosp_blueline_hwasan.mk \
     $(LOCAL_DIR)/vf/aosp_crosshatch_vf.mk \
-    $(LOCAL_DIR)/voltage_blueline.mk \
-    $(LOCAL_DIR)/voltage_crosshatch.mk
+    $(LOCAL_DIR)/neko_blueline.mk \
+    $(LOCAL_DIR)/neko_crosshatch.mk
 
 COMMON_LUNCH_CHOICES := \
     aosp_crosshatch-userdebug \
     aosp_blueline-userdebug \
     aosp_crosshatch_vf-userdebug \
-    voltage_blueline-ap1a-userdebug \
-    voltage_blueline-ap1a-user \
-    voltage_blueline-ap1a-eng \
-    voltage_crosshatch-ap1a-userdebug \
-    voltage_crosshatch-ap1a-user \
-    voltage_crosshatch-ap1a-eng
+    neko_blueline-ap1a-userdebug \
+    neko_blueline-ap1a-user \
+    neko_blueline-ap1a-eng \
+    neko_crosshatch-ap1a-userdebug \
+    neko_crosshatch-ap1a-user \
+    neko_crosshatch-ap1a-eng

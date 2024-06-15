@@ -5,7 +5,7 @@
 #
 
 # Overlays
-DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay-voltage
+DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay-neko
 
 # AiAi Config
 PRODUCT_COPY_FILES += \
@@ -17,8 +17,8 @@ PRODUCT_PRODUCT_PROPERTIES += \
     ro.vendor.camera.extensions.service=com.google.android.apps.camera.services.extensions.service.PixelExtensions
 
 # Elmyra
-PRODUCT_PACKAGES += \
-    ElmyraService
+# PRODUCT_PACKAGES += \
+#    ElmyraService
 
 # EUICC
 PRODUCT_COPY_FILES += \
