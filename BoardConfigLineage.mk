@@ -28,9 +28,11 @@ ifneq ($(PRODUCT_USE_DYNAMIC_PARTITIONS), true)
 endif
 BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
 
-
-# Reserve some space for GApps
-include device/google/crosshatch/configs/reserved_space.mk
+# Reserve space for gapps install
+-include vendor/voltage/config/BoardConfigReservedSize.mk
+ifneq ($(WITH_GMS),true)
+BOARD_PRODUCTIMAGE_PARTITION_RESERVED_SIZE := 1069547520
+endif
 
 # SELinux
 BOARD_SEPOLICY_DIRS += device/google/crosshatch/sepolicy-lineage/dynamic
