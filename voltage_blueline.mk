@@ -24,11 +24,10 @@ TARGET_BOOT_ANIMATION_RES=2160
 
 # Build type
 VOLTAGE_BUILD_TYPE := OFFICIAL
-WITH_GMS := true
 
 PRODUCT_BUILD_PROP_OVERRIDES += \
-    TARGET_PRODUCT=blueline \
-    PRIVATE_BUILD_DESC="blueline-user 12 SP1A.210812.016.C2 8618562 release-keys"
+    DeviceProduct=blueline \
+    BuildDesc=$(call normalize-path-list, "blueline-user 12 SP1A.210812.016.C2 8618562 release-keys")
 
 BUILD_FINGERPRINT := google/blueline/blueline:12/SP1A.210812.016.C2/8618562:user/release-keys
 
